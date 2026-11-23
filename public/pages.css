@@ -1,0 +1,28 @@
+:root, [data-theme="dark"] {
+  --bg: #170a12; --panel: #241019; --panel2: #2e1421; --line: #4a2438;
+  --text: #ffeef6; --muted: #d9a7bf; --pink: #ff2e88; --pink2: #ff6aa9;
+}
+[data-theme="bright"] {
+  --bg: #fff0f6; --panel: #ffffff; --panel2: #ffe3ef; --line: #ffc2da;
+  --text: #3d0f24; --muted: #9c5576; --pink: #f91f7d; --pink2: #ff5c9e;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; color: var(--text); text-decoration: none; }
+.brand small { display: block; font-size: 10px; letter-spacing: 2px; color: var(--muted); font-weight: 600; }
+nav { display: flex; gap: 8px; flex-wrap: wrap; }
+nav a { color: var(--text); text-decoration: none; font-weight: 700; padding: 9px 14px; border-radius: 10px; }
+nav a:hover, nav a.active { background: var(--panel2); color: var(--pink2); }
+.toggle { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 700; }
+main { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }
+h1 { font-size: 28px; line-height: 1.25; }
+h2 { margin-top: 30px; color: var(--pink2); font-size: 20px; }
+p, li { color: var(--text); }
+.muted { color: var(--muted); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-top: 16px; }
+.card a.title { font-size: 19px; font-weight: 800; color: var(--text); text-decoration: none; }
+.card a.title:hover { color: var(--pink2); }
+.btn { display: inline-block; margin-top: 10px; background: linear-gradient(90deg, var(--pink), var(--pink2)); color: #fff; padding: 11px 18px; border-radius: 11px; font-weight: 800; text-decoration: none; }
+footer { border-top: 1px solid var(--line); padding: 22px; text-align: center; color: var(--muted); font-size: 14px; }
+footer a { color: var(--muted); margin: 0 8px; }

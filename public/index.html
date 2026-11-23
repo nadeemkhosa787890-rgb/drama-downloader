@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Drama Downloader — PineDrama & TikTok Drama MP4 Saver</title>
+<meta name="description" content="Resolve PineDrama and TikTok short-drama links and save episodes as MP4 in the highest quality, with 9:16 thumbnails. For personal offline viewing." />
+<script>
+  (function () {
+    var t = localStorage.getItem("drama-theme");
+    if (!t) t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "bright" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<style>
+  :root, [data-theme="dark"] {
+    --bg: #170a12; --panel: #241019; --panel2: #2e1421; --line: #4a2438;
+    --text: #ffeef6; --muted: #d9a7bf; --pink: #ff2e88; --pink2: #ff6aa9;
+    --btn-text: #ffffff; --track: #3d1a2c;
+  }
+  [data-theme="bright"] {
+    --bg: #fff0f6; --panel: #ffffff; --panel2: #ffe3ef; --line: #ffc2da;
+    --text: #3d0f24; --muted: #9c5576; --pink: #f91f7d; --pink2: #ff5c9e;
+    --btn-text: #ffffff; --track: #ffd3e5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; }
+  .brand small { display: block; font-size: 10px; letter-spacing: 2px; color: var(--muted); font-weight: 600; }
+  .toggle { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 700; }
+  main { max-width: 1100px; margin: 0 auto; padding: 22px 16px 60px; }
+  .resolver { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+  .resolver h1 { margin: 0 0 6px; font-size: 24px; }
+  .resolver p { margin: 0 0 14px; color: var(--muted); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  input[type="text"] { flex: 1 1 320px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); font-size: 15px; }
+  button { border: 0; border-radius: 12px; padding: 14px 20px; font-weight: 800; cursor: pointer; font-size: 15px; }
+  .primary { background: linear-gradient(90deg, var(--pink), var(--pink2)); color: var(--btn-text); }
+  .ghost { background: var(--panel2); color: var(--text); border: 1px solid var(--line); }
+  .alert { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #5b1030; color: #ffd7e8; display: none; }
+  [data-theme="bright"] .alert { background: #ffd7e8; color: #7a103c; }
+  .alert.show { display: block; }
+  .drama-card { margin-top: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; display: none; }
+  .drama-head { display: flex; gap: 18px; flex-wrap: wrap; }
+  .drama-head img { width: 130px; height: 231px; object-fit: cover; border-radius: 12px; background: var(--panel2); }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .badge { border: 1px solid var(--line); background: var(--panel2); color: var(--muted); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700; }
+  .badge.hot { color: var(--pink2); border-color: var(--pink); }
+  .full-btn { width: 100%; margin-top: 18px; font-size: 16px; }
+  .toolbar { display: none; gap: 10px; margin: 18px 0 4px; flex-wrap: wrap; align-items: center; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+  .card-top { display: flex; justify-content: space-between; align-items: center; }
+  .ep { background: var(--panel2); color: var(--pink2); border: 1px solid var(--pink); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; }
+  .dur { color: var(--muted); font-size: 13px; }
+  .fname { font-weight: 700; margin: 10px 0 4px; word-break: break-word; }
+  .meta { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+  .card button { width: 100%; margin-top: 8px; padding: 12px; }
+  .thumb-btn { background: var(--panel2); color: var(--text); border: 1px solid var(--line); }
+  .progress { display: none; margin-top: 10px; }
+  .progress.show { display: block; }
+  .bar { height: 10px; background: var(--track); border-radius: 999px; overflow: hidden; }
+  .bar > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--pink), var(--pink2)); transition: width .15s linear; }
+  .pct { font-size: 13px; font-weight: 700; color: var(--pink2); margin-top: 6px; }
+  .grade-label { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
+  .grade-label select { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); font-weight: 700; font-size: 14px; cursor: pointer; }
+  .grade-note { font-size: 13px; color: var(--muted); }
+  .combine-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; margin-top: 16px; display: none; }
+  .combine-panel p { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+  .combine-panel .ready { font-weight: 800; color: var(--pink2); margin: 12px 0; }
+  .combine-panel a.primary { display: inline-block; text-decoration: none; padding: 14px 20px; }
+  footer { color: var(--muted); text-align: center; padding: 24px; font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span id="brandLogo"><svg width="38" height="38" viewBox="0 0 48 48" aria-hidden="true"><rect x="2" y="2" width="44" height="44" rx="11" fill="#ff2e88"/><path d="M19 14.5v19c0 1.8 2 2.9 3.6 2L37 26a2.4 2.4 0 0 0 0-4.2L22.6 12.6c-1.6-1-3.6.1-3.6 1.9z" fill="#fff"/><path d="M24 33v7m0 0l-4-4m4 4l4-4" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(6,-4) scale(0.72)"/></svg></span>
+    <span><span id="brandName">DramaSave</span><small id="brandTagline">PINEDRAMA + TIKTOK RESOLVER</small></span>
+  </div>
+  <nav style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <a href="/" style="color:var(--pink2);text-decoration:none;font-weight:700;padding:9px 12px">Resolver</a>
+    <a href="/guides.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:9px 12px">Guides &amp; Insights</a>
+    <a href="/about.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:9px 12px">About</a>
+    <a href="/contact.html" style="color:var(--text);text-decoration:none;font-weight:700;padding:9px 12px">Contact</a>
+    <button class="toggle" id="themeToggle" type="button">☀ Bright</button>
+  </nav>
+</header>
+<main>
+  <section class="resolver">
+    <h1 id="mainHeading">Download short dramas in highest quality</h1>
+    <p id="mainSubtext">Paste a PineDrama or TikTok drama link (or a series link), resolve it, then save each episode as MP4 — named “Title Ep 01”, “Title Ep 02”, and so on. For personal offline viewing only.</p>
+    <div class="row">
+      <input type="text" id="linkInput" placeholder="Paste PineDrama / TikTok drama link here…" />
+      <button class="primary" id="resolveBtn" type="button">Resolve Episodes</button>
+    </div>
+    <div class="alert" id="alertBox"></div>
+  </section>
+
+  <section class="drama-card" id="dramaCard">
+    <div class="drama-head">
+      <img id="dramaPoster" alt="Drama poster" />
+      <div>
+        <h2 id="dramaTitle" style="margin:0"></h2>
+        <div class="badges">
+          <span class="badge hot" id="badgeEps"></span>
+          <span class="badge">MP4 Stream</span>
+          <span class="badge">Highest Quality</span>
+        </div>
+      </div>
+    </div>
+    <button class="primary full-btn" id="downloadAllBtn" type="button">Download Full Series</button>
+  </section>
+
+  <div class="toolbar" id="toolbar">
+    <button class="ghost" id="selectAllBtn" type="button">Select all</button>
+    <button class="ghost" id="selectNoneBtn" type="button">Select none</button>
+    <button class="primary" id="downloadSelectedBtn" type="button">Download selected (0)</button>
+    <button class="primary" id="combineBtn" type="button">🎬 Combine selected into one video (0)</button>
+    <label class="grade-label">Colour grade:
+      <select id="gradeSelect">
+        <option value="off">Off — original</option>
+        <option value="subtle">Subtle Teal &amp; Orange</option>
+        <option value="classic">Classic Teal &amp; Orange</option>
+        <option value="strong">Strong Teal &amp; Orange</option>
+      </select>
+    </label>
+    <span class="grade-note" id="gradeNote">Grade Off — original files, fastest.</span>
+  </div>
+
+  <section class="combine-panel" id="combinePanel">
+    <h3 id="combineTitle" style="margin:0 0 6px">Combine episodes</h3>
+    <p>Combined quality follows the lowest episode's resolution — a 720p episode makes the whole video 720p. Pick 2–10 episodes, max 300 MB total. When a grade is on, the combined video is graded too.</p>
+    <div class="progress show"><div class="bar"><div id="combineBar"></div></div><div class="pct" id="combinePct"></div></div>
+    <div id="combineReady" style="display:none">
+      <div class="ready">✓ Ready — <span id="combineMeta"></span></div>
+      <a class="primary" id="combineSave" href="#" download>⬇ Save the combined video</a>
+    </div>
+  </section>
+
+  <section class="grid" id="grid"></section>
+</main>
+<footer>
+  <div style="margin-bottom:8px">
+    <a href="/privacy.html" style="color:var(--muted);margin:0 8px">Privacy Policy</a> ·
+    <a href="/terms.html" style="color:var(--muted);margin:0 8px">Terms of Use</a> ·
+    <a href="/dmca.html" style="color:var(--muted);margin:0 8px">DMCA / Copyright</a>
+  </div>
+  <span id="footerText">Only save videos you are allowed to keep for personal offline viewing. Do not redistribute other people's content.</span>
+</footer>
+
+<script>
+  var state = { drama: null, jobs: {}, settings: { showThumbnailButton: true, showFullSeriesButton: true, showBatchButtons: true } };
+
+  // Teal & Orange colour grade — Off / Subtle / Classic / Strong, remembered.
+  var GRADE_LABELS = { off: "Off", subtle: "Subtle", classic: "Classic", strong: "Strong" };
+  var gradeSel = document.getElementById("gradeSelect");
+  var savedGrade = localStorage.getItem("drama-grade") || "off";
+  gradeSel.value = GRADE_LABELS[savedGrade] ? savedGrade : "off";
+  function currentGrade() { return gradeSel.value; }
+  function syncGradeNote() {
+    var g = currentGrade();
+    document.getElementById("gradeNote").textContent = g === "off"
+      ? "Grade Off — original files, fastest."
+      : "Teal & Orange " + GRADE_LABELS[g] + " on — downloads are re-encoded on the server (slower, same size and length).";
+  }
+  gradeSel.addEventListener("change", function () {
+    localStorage.setItem("drama-grade", gradeSel.value);
+    syncGradeNote();
+  });
+  syncGradeNote();
+
+  // Owner settings from /admin (colors, logo, name, texts, buttons) — applied live.
+  fetch("/api/settings").then(function (r) { return r.json(); }).then(function (s) {
+    state.settings = s;
+    var root = document.documentElement.style;
+    if (s.pink) root.setProperty("--pink", s.pink);
+    if (s.pink2) root.setProperty("--pink2", s.pink2);
+    if (!localStorage.getItem("drama-theme") && s.defaultTheme) {
+      document.documentElement.setAttribute("data-theme", s.defaultTheme); syncToggle();
+    }
+    if (s.appName) document.getElementById("brandName").textContent = s.appName;
+    if (s.tagline) document.getElementById("brandTagline").textContent = s.tagline;
+    if (s.heading) document.getElementById("mainHeading").textContent = s.heading;
+    if (s.subtext) document.getElementById("mainSubtext").textContent = s.subtext;
+    if (s.footer) document.getElementById("footerText").textContent = s.footer;
+    if (s.logoUrl) document.getElementById("brandLogo").innerHTML = '<img src="' + s.logoUrl + '" alt="logo" style="width:38px;height:38px;border-radius:10px;object-fit:cover" />';
+    document.getElementById("downloadAllBtn").style.display = s.showFullSeriesButton ? "" : "none";
+    document.getElementById("toolbar").dataset.batch = s.showBatchButtons ? "1" : "0";
+  }).catch(function () {});
+
+  var toggle = document.getElementById("themeToggle");
+  function syncToggle() {
+    var dark = document.documentElement.getAttribute("data-theme") === "dark";
+    toggle.textContent = dark ? "☀ Bright" : "🌙 Dark";
+  }
+  toggle.addEventListener("click", function () {
+    var next = document.documentElement.getAttribute("data-theme") === "dark" ? "bright" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("drama-theme", next);
+    syncToggle();
+  });
+  syncToggle();
+
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function cleanTitle(t) { return (t || "Drama").replace(/[#\/\\:*?"<>|]/g, "").replace(/\s+/g, " ").trim(); }
+  function epFileName(ep) { return cleanTitle(state.drama.title) + " Ep " + pad(ep.n) + ".mp4"; }
+  function thumbFileName(ep) { return cleanTitle(state.drama.title) + " Ep " + pad(ep.n) + ".jpg"; }
+  function showAlert(msg) { var a = document.getElementById("alertBox"); a.textContent = msg; a.classList.add("show"); }
+  function hideAlert() { document.getElementById("alertBox").classList.remove("show"); }
+
+  document.getElementById("resolveBtn").addEventListener("click", resolve);
+  document.getElementById("linkInput").addEventListener("keydown", function (e) { if (e.key === "Enter") resolve(); });
+
+  async function resolve() {
+    var link = document.getElementById("linkInput").value.trim();
+    hideAlert();
+    if (!/^https?:\/\//i.test(link)) { showAlert("That doesn't look like a link. Paste the full PineDrama or TikTok share link."); return; }
+    var btn = document.getElementById("resolveBtn");
+    btn.disabled = true; btn.textContent = "Resolving…";
+    try {
+      var r = await fetch("/api/resolve?url=" + encodeURIComponent(link));
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Resolve failed");
+      state.drama = data;
+      renderDrama();
+    } catch (e) {
+      showAlert(e.message || "Could not resolve this link.");
+    } finally {
+      btn.disabled = false; btn.textContent = "Resolve Episodes";
+    }
+  }
+
+  function renderDrama() {
+    var d = state.drama;
+    document.getElementById("dramaTitle").textContent = d.title;
+    document.getElementById("badgeEps").textContent = "✓ " + d.episodes.length + " Episodes Ready";
+    var poster = document.getElementById("dramaPoster");
+    if (d.poster) poster.src = "/api/thumb?url=" + encodeURIComponent(d.poster); else poster.removeAttribute("src");
+    document.getElementById("dramaCard").style.display = "block";
+    document.getElementById("toolbar").style.display = state.settings.showBatchButtons ? "flex" : "none";
+    var grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    d.episodes.forEach(function (ep) { grid.appendChild(episodeCard(ep)); });
+    updateSelectedCount();
+  }
+
+  function episodeCard(ep) {
+    var card = document.createElement("div"); card.className = "card"; card.id = "card-" + ep.n;
+    card.innerHTML =
+      '<div class="card-top"><label style="display:flex;gap:8px;align-items:center">' +
+      '<input type="checkbox" class="pick" checked /> <span class="ep">EP' + pad(ep.n) + '</span></label>' +
+      '<span class="dur">' + (ep.duration || "") + '</span></div>' +
+      '<div class="fname">' + epFileName(ep) + '</div>' +
+      '<div class="meta">Best quality available from source</div>' +
+      '<button class="primary dl-btn" type="button">⬇ Download MP4</button>' +
+      (state.settings.showThumbnailButton ? '<button class="thumb-btn" type="button">🖼 Download Thumbnail · 9:16</button>' : '') +
+      '<div class="progress"><div class="bar"><div></div></div><div class="pct"></div></div>';
+    card.querySelector(".dl-btn").addEventListener("click", function () { downloadEpisode(ep, card); });
+    var tb = card.querySelector(".thumb-btn");
+    if (tb) tb.addEventListener("click", function () { downloadThumbnail(ep, tb); });
+    card.querySelector(".pick").addEventListener("change", updateSelectedCount);
+    return card;
+  }
+
+  function setProgress(card, pct, label) {
+    var wrap = card.querySelector(".progress");
+    wrap.classList.add("show");
+    wrap.querySelector(".bar > div").style.width = pct + "%";
+    wrap.querySelector(".pct").textContent = label;
+  }
+
+  function downloadEpisode(ep, card) {
+    if (state.jobs[ep.n]) return;
+    state.jobs[ep.n] = true;
+    if (currentGrade() !== "off") { gradeEpisode(ep, card); return; }
+    setProgress(card, 0, "Preparing the best-quality file…");
+    var url = "/api/download?url=" + encodeURIComponent(ep.stream) + "&name=" + encodeURIComponent(epFileName(ep));
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.responseType = "blob";
+    xhr.onprogress = function (e) {
+      if (e.lengthComputable && e.total > 0) {
+        var pct = Math.floor((e.loaded / e.total) * 100);
+        setProgress(card, pct, "Downloading " + pct + "%");
+      }
+    };
+    xhr.onload = function () {
+      delete state.jobs[ep.n];
+      if (xhr.status === 200) {
+        saveBlob(xhr.response, epFileName(ep));
+        setProgress(card, 100, "Downloaded · 100%");
+      } else {
+        setProgress(card, 0, "Failed — tap Download to retry");
+      }
+    };
+    xhr.onerror = function () { delete state.jobs[ep.n]; setProgress(card, 0, "Failed — tap Download to retry"); };
+    xhr.send();
+  }
+
+  function triggerDownload(href, name) {
+    var a = document.createElement("a");
+    a.href = href; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { a.remove(); }, 2000);
+  }
+
+  // Poll a server job (/api/job) until it is Ready or Failed.
+  function pollJob(id, onProg, onReady, onErr) {
+    var iv = setInterval(function () {
+      fetch("/api/job?id=" + encodeURIComponent(id)).then(function (r) { return r.json(); }).then(function (j) {
+        if (j.status === "ready") { clearInterval(iv); onReady(j); }
+        else if (j.status === "error") { clearInterval(iv); onErr(j.error || "failed"); }
+        else onProg(j.pct || 0, j.stage || "Working…");
+      }).catch(function () { clearInterval(iv); onErr("lost connection to the server"); });
+    }, 1500);
+  }
+
+  // Single-episode download with the Teal & Orange grade baked in.
+  async function gradeEpisode(ep, card) {
+    setProgress(card, 0, "Grading Teal & Orange — re-encoding, please wait…");
+    try {
+      var r = await fetch("/api/grade", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stream: ep.stream, name: epFileName(ep), grade: currentGrade() }),
+      });
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Grading failed");
+      pollJob(data.jobId,
+        function (pct, stage) { setProgress(card, pct, stage + (pct ? " · " + pct + "%" : "")); },
+        function (job) {
+          delete state.jobs[ep.n];
+          setProgress(card, 100, "Ready — Teal & Orange · tap to save");
+          triggerDownload("/api/file?id=" + job.id, job.filename);
+        },
+        function (err) { delete state.jobs[ep.n]; setProgress(card, 0, "Grading failed — " + err + " · try with grade Off"); }
+      );
+    } catch (e) {
+      delete state.jobs[ep.n];
+      setProgress(card, 0, "Grading failed — " + (e.message || "") + " · try with grade Off");
+    }
+  }
+
+  function saveBlob(blob, name) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  }
+
+  async function downloadThumbnail(ep, btn) {
+    btn.disabled = true; var old = btn.textContent; btn.textContent = "Getting original…";
+    try {
+      var src = ep.thumb || state.drama.poster;
+      if (!src) throw new Error("no poster");
+      var r = await fetch("/api/thumb?url=" + encodeURIComponent(src));
+      if (!r.ok) throw new Error("poster failed");
+      var blob = await r.blob();
+      var img = await createImageBitmap(blob);
+      // Center-crop to 9:16 at native resolution (no downscale)
+      var target = 9 / 16, ratio = img.width / img.height, w, h, x, y;
+      if (ratio > target) { h = img.height; w = Math.round(h * target); x = Math.round((img.width - w) / 2); y = 0; }
+      else { w = img.width; h = Math.round(w / target); x = 0; y = Math.round((img.height - h) / 2); }
+      var canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, x, y, w, h, 0, 0, w, h);
+      canvas.toBlob(function (out) { if (out) saveBlob(out, thumbFileName(ep)); }, "image/jpeg", 0.95);
+    } catch (e) { /* silent fail; user can retry */ }
+    btn.disabled = false; btn.textContent = old;
+  }
+
+  function selectedEpisodes() {
+    return state.drama.episodes.filter(function (ep) {
+      var c = document.getElementById("card-" + ep.n);
+      return c && c.querySelector(".pick").checked;
+    });
+  }
+  function updateSelectedCount() {
+    if (!state.drama) return;
+    var n = selectedEpisodes().length;
+    document.getElementById("downloadSelectedBtn").textContent = "Download selected (" + n + ")";
+    document.getElementById("combineBtn").textContent = "🎬 Combine selected into one video (" + n + ")";
+  }
+
+  function setCombineProgress(pct, label) {
+    document.getElementById("combineBar").style.width = pct + "%";
+    document.getElementById("combinePct").textContent = label + (pct > 0 ? " · " + pct + "%" : "");
+  }
+
+  document.getElementById("combineBtn").addEventListener("click", async function () {
+    var eps = selectedEpisodes();
+    if (eps.length < 2) { showAlert("Tick at least 2 episodes to combine."); return; }
+    if (eps.length > 10) { showAlert("Combine up to 10 episodes at a time."); return; }
+    hideAlert();
+    var panel = document.getElementById("combinePanel");
+    panel.style.display = "block";
+    document.getElementById("combineReady").style.display = "none";
+    document.getElementById("combineTitle").textContent = "Combining " + eps.length + " episodes…";
+    setCombineProgress(0, "Starting…");
+    try {
+      var r = await fetch("/api/combine", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: state.drama.title, grade: currentGrade(),
+          episodes: eps.map(function (e) { return { n: e.n, stream: e.stream }; }),
+        }),
+      });
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Combine failed");
+      pollJob(data.jobId,
+        function (pct, stage) { setCombineProgress(pct, stage); },
+        function (job) {
+          setCombineProgress(100, "Ready");
+          document.getElementById("combineTitle").textContent = "Combined video ready";
+          document.getElementById("combineMeta").textContent =
+            job.filename + (job.size ? " · " + (job.size / 1048576).toFixed(1) + " MB" : "");
+          var save = document.getElementById("combineSave");
+          save.href = "/api/file?id=" + job.id;
+          save.setAttribute("download", job.filename);
+          document.getElementById("combineReady").style.display = "block";
+        },
+        function (err) { setCombineProgress(0, "Combine failed — " + err); }
+      );
+    } catch (e) {
+      setCombineProgress(0, "Combine failed — " + (e.message || ""));
+    }
+  });
+  document.getElementById("selectAllBtn").addEventListener("click", function () {
+    document.querySelectorAll(".pick").forEach(function (c) { c.checked = true; }); updateSelectedCount();
+  });
+  document.getElementById("selectNoneBtn").addEventListener("click", function () {
+    document.querySelectorAll(".pick").forEach(function (c) { c.checked = false; }); updateSelectedCount();
+  });
+
+  async function runQueue(eps) {
+    var pool = eps.slice(), active = 0;
+    await new Promise(function (done) {
+      (function next() {
+        while (active < 3 && pool.length) {
+          var ep = pool.shift(); active++;
+          var card = document.getElementById("card-" + ep.n);
+          var wasJob = !!state.jobs[ep.n];
+          downloadEpisode(ep, card);
+          var iv = setInterval(function () {
+            if (!state.jobs[ep.n]) { clearInterval(iv); active--; next(); }
+          }, 400);
+          if (wasJob) { clearInterval(iv); active--; }
+        }
+        if (!pool.length && active === 0) done();
+      })();
+    });
+  }
+  document.getElementById("downloadSelectedBtn").addEventListener("click", function () { runQueue(selectedEpisodes()); });
+  document.getElementById("downloadAllBtn").addEventListener("click", function () { runQueue(state.drama.episodes); });
+</script>
+</body>
+</html>

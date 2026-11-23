@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Owner Admin — Drama Downloader</title>
+<style>
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background:#170a12; color:#ffeef6; }
+  main { max-width: 640px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 22px; } h2 { font-size: 16px; margin-top: 28px; color:#ff6aa9; }
+  p.note { color:#d9a7bf; font-size: 14px; }
+  label { display:block; font-weight:700; margin: 14px 0 6px; font-size: 14px; }
+  input[type="text"], input[type="password"], textarea, select {
+    width:100%; padding:12px; border-radius:10px; border:1px solid #4a2438; background:#241019; color:#ffeef6; font-size:15px; box-sizing:border-box;
+  }
+  textarea { min-height: 74px; }
+  input[type="color"] { width: 72px; height: 44px; border:1px solid #4a2438; border-radius:10px; background:#241019; padding:4px; }
+  .row { display:flex; gap:18px; flex-wrap:wrap; }
+  .check { display:flex; align-items:center; gap:10px; font-weight:600; margin-top:12px; }
+  .check input { width:20px; height:20px; accent-color:#ff2e88; }
+  button { margin-top: 22px; width:100%; padding: 15px; border:0; border-radius:12px; background: linear-gradient(90deg,#ff2e88,#ff6aa9); color:#fff; font-weight:800; font-size:16px; cursor:pointer; }
+  button.secondary { background:#2e1421; border:1px solid #4a2438; margin-top:10px; }
+  .msg { margin-top:16px; padding:12px 14px; border-radius:10px; display:none; }
+  .msg.ok { display:block; background:#123b24; color:#b9f4d0; }
+  .msg.err { display:block; background:#5b1030; color:#ffd7e8; }
+  img.preview { width:64px; height:64px; border-radius:14px; object-fit:cover; border:1px solid #4a2438; display:none; margin-top:8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🎀 Owner Admin — edit your app, no code</h1>
+  <p class="note">Change colors, logo, name, texts and buttons here. Saved settings apply to the live app for every visitor. Keep your admin password private.</p>
+
+  <label>Admin password</label>
+  <input type="password" id="pw" placeholder="Your admin password" />
+
+  <h2>Brand</h2>
+  <label>App name</label>
+  <input type="text" id="appName" />
+  <label>Tagline (small text under the name)</label>
+  <input type="text" id="tagline" />
+  <label>Logo image (PNG / JPG / SVG)</label>
+  <input type="file" id="logoFile" accept="image/*" />
+  <img class="preview" id="logoPreview" alt="logo preview" />
+  <button class="secondary" id="logoBtn" type="button">Upload logo</button>
+
+  <h2>Colors & theme</h2>
+  <div class="row">
+    <div><label>Main pink</label><input type="color" id="pink" /></div>
+    <div><label>Light pink</label><input type="color" id="pink2" /></div>
+  </div>
+  <label>First-visit mode</label>
+  <select id="defaultTheme">
+    <option value="dark">Dark mode</option>
+    <option value="bright">Bright mode</option>
+  </select>
+
+  <h2>Texts</h2>
+  <label>Homepage heading</label>
+  <input type="text" id="heading" />
+  <label>Homepage text under the heading</label>
+  <textarea id="subtext"></textarea>
+  <label>Footer text</label>
+  <textarea id="footer"></textarea>
+  <label>Contact email (shown on the Contact and DMCA pages)</label>
+  <input type="text" id="contactEmail" />
+
+  <h2>Buttons</h2>
+  <label class="check"><input type="checkbox" id="showThumbnailButton" /> Show “Download Thumbnail” button on episodes</label>
+  <label class="check"><input type="checkbox" id="showFullSeriesButton" /> Show “Download Full Series” button</label>
+  <label class="check"><input type="checkbox" id="showBatchButtons" /> Show select / “Download selected” bar</label>
+
+  <button id="saveBtn" type="button">💾 Save all settings</button>
+  <div class="msg" id="msg"></div>
+  <p class="note">Tip: after saving, open your homepage and refresh to see the changes.</p>
+</main>
+<script>
+  var fields = ["appName","tagline","heading","subtext","footer","contactEmail","pink","pink2","defaultTheme"];
+  var checks = ["showThumbnailButton","showFullSeriesButton","showBatchButtons"];
+  var msg = document.getElementById("msg");
+  function show(text, ok) { msg.textContent = text; msg.className = "msg " + (ok ? "ok" : "err"); }
+  function pw() { return document.getElementById("pw").value; }
+
+  fetch("/api/settings").then(function (r) { return r.json(); }).then(function (s) {
+    fields.forEach(function (f) { if (s[f] != null) document.getElementById(f).value = s[f]; });
+    checks.forEach(function (f) { document.getElementById(f).checked = !!s[f]; });
+    if (s.logoUrl) { var img = document.getElementById("logoPreview"); img.src = s.logoUrl; img.style.display = "block"; }
+  }).catch(function () {});
+
+  document.getElementById("saveBtn").addEventListener("click", async function () {
+    var settings = {};
+    fields.forEach(function (f) { settings[f] = document.getElementById(f).value; });
+    checks.forEach(function (f) { settings[f] = document.getElementById(f).checked; });
+    try {
+      var r = await fetch("/api/admin/settings", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pw(), settings: settings })
+      });
+      var data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Save failed");
+      show("Saved ✔ Your app is updated. Refresh the homepage to see it.", true);
+    } catch (e) { show(e.message, false); }
+  });
+
+  document.getElementById("logoBtn").addEventListener("click", function () {
+    var file = document.getElementById("logoFile").files[0];
+    if (!file) { show("Choose a logo image first.", false); return; }
+    var reader = new FileReader();
+    reader.onload = async function () {
+      try {
+        var r = await fetch("/api/admin/logo", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: pw(), dataUrl: reader.result })
+        });
+        var data = await r.json();
+        if (!r.ok) throw new Error(data.error || "Upload failed");
+        var img = document.getElementById("logoPreview"); img.src = data.logoUrl; img.style.display = "block";
+        show("Logo updated ✔", true);
+      } catch (e) { show(e.message, false); }
+    };
+    reader.readAsDataURL(file);
+  });
+</script>
+</body>
+</html>

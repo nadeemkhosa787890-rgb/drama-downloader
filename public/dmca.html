@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DMCA / Copyright — Drama Downloader</title>
+<meta name="description" content="Copyright and DMCA information for the Drama Downloader: the tool hosts no content, and how rights holders can contact us with a takedown request." />
+<link rel="stylesheet" href="/pages.css" />
+<script>(function(){var t=localStorage.getItem("drama-theme");if(t)document.documentElement.setAttribute("data-theme",t);})();</script>
+</head>
+<body>
+<header>
+  <a class="brand" href="/"><svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><rect x="2" y="2" width="44" height="44" rx="11" fill="#ff2e88"/><path d="M19 14.5v19c0 1.8 2 2.9 3.6 2L37 26a2.4 2.4 0 0 0 0-4.2L22.6 12.6c-1.6-1-3.6.1-3.6 1.9z" fill="#fff"/></svg><span>DramaSave<small>PINEDRAMA + TIKTOK RESOLVER</small></span></a>
+  <nav>
+    <a href="/">Resolver</a><a href="/guides.html">Guides &amp; Insights</a><a href="/about.html">About</a><a href="/contact.html">Contact</a>
+    <button class="toggle" type="button" onclick="var d=document.documentElement,t=d.getAttribute('data-theme')==='dark'?'bright':'dark';d.setAttribute('data-theme',t);localStorage.setItem('drama-theme',t);">☀ / 🌙</button>
+  </nav>
+</header>
+<main>
+  <h1>DMCA / Copyright</h1>
+
+  <h2>How this tool works, in copyright terms</h2>
+  <p>This site does not host, store, embed, index, or publish any video files or any catalog of dramas. It is a link resolver: when a visitor submits a link, the tool contacts the source platform and public resolver services at that moment, displays the returned public metadata, and — if the visitor chooses — passes the source's file directly to that visitor's browser. No copy is kept on this server.</p>
+  <p>The tool is presented for personal offline viewing of content users are permitted to keep, and it does not bypass paywalls or other access controls.</p>
+
+  <h2>If you are a rights holder</h2>
+  <p>We respect the rights of creators and copyright owners. Because nothing is hosted here, the effective place to remove content is the source platform — but if you believe this tool is being used in a way that infringes your rights (for example, a page on this site that references your work improperly), contact us and we will review and act promptly, including blocking specific links or series from being resolved through this tool where appropriate.</p>
+
+  <h2>What to include in a takedown notice</h2>
+  <ul>
+    <li>Your full name, company (if any), and contact email.</li>
+    <li>Identification of the copyrighted work you own.</li>
+    <li>The exact link(s) or series title(s) on our site that concern you.</li>
+    <li>A statement that you have a good-faith belief the use is not authorized by the owner, its agent, or the law.</li>
+    <li>A statement, under penalty of perjury where applicable, that the information is accurate and that you are the owner or authorized to act for the owner.</li>
+    <li>Your physical or electronic signature.</li>
+  </ul>
+  <div class="card">
+    <p style="margin:0">Send notices to: 📧 <a id="contactEmail" href="mailto:digitalemporia0@gmail.com" style="color:var(--pink2); font-weight:800">digitalemporia0@gmail.com</a></p>
+  </div>
+
+  <h2>Counter-notices</h2>
+  <p>If you believe a link was blocked in error, write to the same address with your details and the link in question, and we will review it.</p>
+</main>
+<footer>
+  <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms of Use</a> · <a href="/dmca.html">DMCA / Copyright</a>
+  <div style="margin-top:8px">For personal offline viewing only.</div>
+</footer>
+<script>
+  fetch("/api/settings").then(function(r){return r.json();}).then(function(s){
+    if (s.contactEmail) { var a = document.getElementById("contactEmail"); a.textContent = s.contactEmail; a.href = "mailto:" + s.contactEmail; }
+  }).catch(function(){});
+</script>
+</body>
+</html>
